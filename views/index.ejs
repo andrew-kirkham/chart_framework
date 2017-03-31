@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css'/>
+</head>
+<body>
+<h1><%= title %></h1>
+<canvas id="myChart" width="200" height="200"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.js"></script>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="/javascripts/moment.js"></script>
+<script>
+    Chart.defaults.global.animation = {
+        easing: 'linear',
+        duration: 10
+    }
+
+    var maxXValues = 25;
+
+    function rand(min, max) {
+        return (Math.random() * (max - min)) + min;
+    }
+
+    function randomColorFactor() {
+        return Math.round(Math.random() * 255);
+    }
+
+    function randomColor() {
+        var r = randomColorFactor();
+        var g = randomColorFactor();
+        var b = randomColorFactor();
+        return {
+            background: 'rgba(' + r + ',' + g + ',' + b + ',' + '.3' + ')',
+            border: 'rgba(' + r + ',' + g + ',' + b + ',' + '.7' + ')'
+        };
+    }
+
+    var ctx = document.getElementById("myChart");
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [...Array(maxXValues).keys()],
+            datasets: [
+                {
+                    label: "Data 1",
+                    fill: false,
+                },
+                {
+                    label: "Data 2",
+                    fill: false,
+                }
+            ]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        min: -1,
+                        max: 1
+                    }
+                }]
+            }
+        }
+    });
+
+    //set the line and fill colors to be identical but different opacity. the color is random
+    for (var i = 0; i < myChart.data.datasets.length; i++) {
+        var color = randomColor();
+        myChart.data.datasets[i].borderColor = color.border;
+        myChart.data.datasets[i].backgroundColor = color.background;
+    }
+
+    //set a timer to post to API for values for the labels.
+    //when data is returned, the charts are updated.
+    setInterval(function () {
+        for (var iLabel = 0; iLabel < myChart.data.datasets.length; iLabel++) {
+            var plotNumber = Math.sin(new Date().getSeconds()) * rand(0.5, 1);
+            myChart.data.datasets[iLabel].data.push(plotNumber);
+            if (myChart.data.datasets[iLabel].data.length > maxXValues) {
+                //pop off the earliest data point
+                myChart.data.datasets[iLabel].data.shift();
+            }
+            myChart.update();
+        }
+    }, 500);
+</script>
+
+</body>
+</html>
